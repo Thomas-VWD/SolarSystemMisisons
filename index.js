@@ -30,8 +30,11 @@ const datas = [
 const stream = fs.createWriteStream("output.pdf");
 doc.pipe(stream);
 
-datas.forEach((datum) => {
-  console.log("datum", datum);
+datas.forEach((datum, index) => {
+  //console.log("datum", datum);
+  if (index !== 0) {
+    doc.addPage();
+  }
 
   doc.fontSize(24).text(datum.titre, { align: "center", underline: true });
 
