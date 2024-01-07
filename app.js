@@ -19,6 +19,13 @@ app.post("/api/mission", missionHandler.postMission);
 app.put("/api/mission/:id", missionHandler.updateMission);
 app.delete("/api/mission/:id", missionHandler.deleteMission);
 
+const generatePDF = require("./generatePDF");
+
+app.get("/api/generatePDF", (req, res) => {
+  generatePDF({ filename: "output.pdf" });
+  res.send("PDF généré avec succès !");
+});
+
 app.listen(port, (err) => {
   if (err) {
     console.error("Something bad happened", err);

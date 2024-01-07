@@ -1,6 +1,6 @@
 const fs = require("fs");
 const PDFDocument = require("pdfkit");
-const missionsHandler = require("./missionHandler");
+const database = require("./database");
 
 const generatePDF = async ({ filename = "output.pdf" }) => {
   const doc = new PDFDocument();
@@ -8,9 +8,9 @@ const generatePDF = async ({ filename = "output.pdf" }) => {
   doc.pipe(stream);
 
   try {
-    const missions = await missionsHandler.getMissions();
+    const [missions] = await database.query("SELECT * FROM missions");
     missions.forEach((mission, id) => {
-      if (id !== 1) {
+      if (id !== 0) {
         doc.addPage();
       }
 
@@ -43,7 +43,9 @@ const generatePDF = async ({ filename = "output.pdf" }) => {
     });
 
     doc.end();
-    console.log("PDF généré avec succès !");
+    stream.on("finish", () => {
+      console.log("PDF généré avec succès !");
+    });
   } catch (error) {
     console.error("Erreur lors de la récupération des missions :", error);
   }
