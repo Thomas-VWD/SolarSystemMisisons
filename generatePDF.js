@@ -1,48 +1,52 @@
 const fs = require("fs");
 const PDFDocument = require("pdfkit");
+const missionsHandler = require("./missionHandler");
 
-const generatePDF = ({ filename = "output.pdf", data = [] }) => {
+const generatePDF = async ({ filename = "output.pdf" }) => {
   const doc = new PDFDocument();
-
   const stream = fs.createWriteStream(filename);
   doc.pipe(stream);
 
-  data.forEach((datum, index) => {
-    //console.log("datum", datum);
-    if (index !== 0) {
-      doc.addPage();
-    }
+  try {
+    const missions = await missionsHandler.getMissions();
+    missions.forEach((mission, id) => {
+      if (id !== 1) {
+        doc.addPage();
+      }
 
-    doc.fontSize(24).text(datum.titre, { align: "center", underline: true });
+      doc
+        .fontSize(24)
+        .text(mission.titre, { align: "center", underline: true });
 
-    // Calculer la position pour centrer l'image
-    const imageWidth = 450;
-    const imageHeight = 550;
-    const imageX = (doc.page.width - imageWidth) * 0.5;
-    const imageY = 120;
+      const imageWidth = 450;
+      const imageHeight = 550;
+      const imageX = (doc.page.width - imageWidth) * 0.5;
+      const imageY = 120;
 
-    doc.image(datum.link, imageX, imageY, {
-      fit: [imageWidth, imageHeight],
-      align: "center",
+      doc.image(mission.link, imageX, imageY, {
+        fit: [imageWidth, imageHeight],
+        align: "center",
+      });
+
+      doc
+        .text(mission.title, 100, 400)
+        .font("Times-Roman", 13)
+        .moveDown()
+        .text(mission.article, {
+          width: 412,
+          align: "justify",
+          indent: 30,
+          columns: 2,
+          height: 300,
+          ellipsis: true,
+        });
     });
 
-    doc
-      .text(datum.title, 100, 400)
-      .font("Times-Roman", 13)
-      .moveDown()
-      .text(datum.article, {
-        width: 412,
-        align: "justify",
-        indent: 30,
-        columns: 2,
-        height: 300,
-        ellipsis: true,
-      });
-  });
-
-  doc.end();
-
-  console.log("PDF généré avec succès !");
+    doc.end();
+    console.log("PDF généré avec succès !");
+  } catch (error) {
+    console.error("Erreur lors de la récupération des missions :", error);
+  }
 };
 
 module.exports = generatePDF;
