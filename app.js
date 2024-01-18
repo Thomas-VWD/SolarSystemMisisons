@@ -1,9 +1,16 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
+const path = require("node:path");
 
 const app = express();
 
 app.use(express.json());
+app.use(
+  cors({
+    origin: "https://solar-system-misisons-app.vercel.app/",
+  })
+);
 
 const port = process.env.APP_PORT || 3000;
 
@@ -22,8 +29,24 @@ app.delete("/api/mission/:id", missionHandler.deleteMission);
 const generatePDF = require("./generatePDF");
 
 app.get("/api/generatePDF", (req, res) => {
-  generatePDF({ filename: "output.pdf" });
-  res.send("PDF généré avec succès !");
+  try {
+    generatePDF({ filename: "output.pdf" });
+
+    const filePath = path.join(__dirname, "output.pdf");
+    res.json({
+      success: true,
+      message: "PDF generated successfully",
+      filePath,
+    });
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    res.status(500).json({ success: false, message: "Error generating PDF" });
+  }
+});
+
+app.get("/api/viewPDF", (req, res) => {
+  const filePath = path.join(__dirname, "output.pdf");
+  res.sendFile(filePath);
 });
 
 app.listen(port, (err) => {
